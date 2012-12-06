@@ -18,6 +18,7 @@ package spray.testkit
 
 import scala.util.DynamicVariable
 import scala.reflect.ClassTag
+import scala.concurrent.ExecutionContext
 import akka.actor.ActorSystem
 import org.scalatest.Suite
 import spray.routing._
@@ -31,7 +32,7 @@ trait RouteTest extends RequestBuilding with RouteResultComponent {
   this: TestFrameworkInterface =>
 
   implicit def system: ActorSystem
-  implicit def executor = system.dispatcher
+  implicit def executionContext: ExecutionContext = system.dispatcher
 
   def cleanUp() { system.shutdown() }
 

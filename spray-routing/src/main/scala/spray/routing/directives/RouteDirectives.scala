@@ -73,11 +73,7 @@ trait CompletionMagnet {
   def route: StandardRoute
 }
 
-object CompletionMagnet {
-  implicit def fromObject[T :Marshaller](obj: T) =
-    new CompletionMagnet {
-      def route: StandardRoute = new CompletionRoute(OK, Nil, obj)
-    }
+object CompletionMagnet extends CompletionMagnetLowPriorityImplicit {
   implicit def fromStatusObject[T :Marshaller](tuple: (StatusCode, T)) =
     new CompletionMagnet {
       def route: StandardRoute = new CompletionRoute(tuple._1, Nil, tuple._2)
@@ -105,8 +101,17 @@ object CompletionMagnet {
       }
     }
 
-  private class CompletionRoute[T :Marshaller](status: StatusCode, headers: List[HttpHeader], obj: T)
+  protected class CompletionRoute[T :Marshaller](status: StatusCode, headers: List[HttpHeader], obj: T)
     extends StandardRoute {
     def apply(ctx: RequestContext) { ctx.complete(status, headers, obj) }
   }
+}
+
+private[directives] abstract class CompletionMagnetLowPriorityImplicit {
+  this: CompletionMagnet.type =>
+
+  implicit def fromObject[T :Marshaller](obj: T) =
+    new CompletionMagnet {
+      def route: StandardRoute = new CompletionRoute(OK, Nil, obj)
+    }
 }
